@@ -14,22 +14,37 @@ interface Camera {
   created_at: string;
 }
 
+interface Area {
+  id: number;
+  name: string;
+  center_latitude: string;
+  center_longitude: string;
+  created_at: string;
+}
+
 export function App() {
   const [cameras, setCameras] = useState<Camera[]>([]);
-  const [
-    endPoint,
+  const [areas, setAreas] = useState<Area[]>([]);
+
+  const [endPoint, 
     // setEndpoint
   ] = useState(null);
-  const [
-    imageUrl,
-    // setImageUrl
-  ] = useState(null);
 
+  // const [
+  //   imageUrl,
+  //   // setImageUrl
+  // ] = useState(null);
 
-    async function getAreas() {
-      const { data: areas } = await supabase.from("areas").select();
-      console.log(areas);
-    }
+  async function getAreas() {
+    const { data,error } = await supabase.from("areas").select();
+    if (error) {
+        console.error("Error fetching areas:", error);
+      } else {
+        setAreas((data as Area[]) ?? []);
+        console.log("Areas:", data);
+      }
+      
+  }
 
   useEffect(() => {
     const getCameras = async () => {
@@ -56,7 +71,7 @@ export function App() {
     <div style={{ height: "100vh", width: "100vw" }}>
       <MapContainer
         style={{ height: "100%", width: "100%" }}
-        center={endPoint || [33.98460250512071, -5.019231838515444]}
+        center={endPoint || [ parseFloat(areas[0].center_latitude), parseFloat(areas[0].center_longitude)]}
         zoom={15}
       >
         <TileLayer
