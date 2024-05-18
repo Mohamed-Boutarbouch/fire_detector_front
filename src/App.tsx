@@ -26,24 +26,20 @@ export function App() {
   const [cameras, setCameras] = useState<Camera[]>([]);
   const [areas, setAreas] = useState<Area[]>([]);
 
-  const [endPoint, 
-    // setEndpoint
-  ] = useState(null);
-
   // const [
   //   imageUrl,
   //   // setImageUrl
   // ] = useState(null);
 
   async function getAreas() {
-    const { data,error } = await supabase.from("areas").select();
+    const { data, error } = await supabase.from("areas").select("*");
+
     if (error) {
-        console.error("Error fetching areas:", error);
-      } else {
-        setAreas((data as Area[]) ?? []);
-        console.log("Areas:", data);
-      }
-      
+      console.error("Error fetching areas:", error);
+    } else {
+      setAreas((data as Area[]) ?? []);
+      console.log("Areas:", data);
+    }
   }
 
   useEffect(() => {
@@ -69,30 +65,35 @@ export function App() {
 
   return (
     <div style={{ height: "100vh", width: "100vw" }}>
-      <MapContainer
-        style={{ height: "100%", width: "100%" }}
-        center={endPoint || [ parseFloat(areas[0].center_latitude), parseFloat(areas[0].center_longitude)]}
-        zoom={15}
-      >
-        <TileLayer
-          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-        />
-        {cameras.map((camera) => {
-          return (
-            <Marker
-              key={camera.id}
-              position={[
-                parseFloat(camera.latitude),
-                parseFloat(camera.longitude),
-              ]}
-              icon={cameraIcon}
-            >
-              <Popup>{camera.area_id}</Popup>
-            </Marker>
-          );
-        })}
-      </MapContainer>
+      {areas.length > 0 && (
+        <MapContainer
+          style={{ height: "100%", width: "100%" }}
+          center={[
+            parseFloat(areas[0]?.center_latitude),
+            parseFloat(areas[0]?.center_longitude),
+          ]}
+          zoom={15}
+        >
+          <TileLayer
+            attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+            url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+          />
+          {cameras.map((camera) => {
+            return (
+              <Marker
+                key={camera.id}
+                position={[
+                  parseFloat(camera.latitude),
+                  parseFloat(camera.longitude),
+                ]}
+                icon={cameraIcon}
+              >
+                <Popup>{camera.area_id}</Popup>
+              </Marker>
+            );
+          })}
+        </MapContainer>
+      )}
     </div>
   );
 }
