@@ -1,58 +1,28 @@
 import { useEffect, useState } from "react";
-import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
+import { MapContainer, TileLayer, Marker, Popup, useMapEvent } from "react-leaflet";
 import { Icon } from "leaflet";
-
 import "leaflet/dist/leaflet.css";
 import fireIcon from "./assets/fire.png";
 import { supabase } from "./supabaseClient";
-import { useMap } from "react-leaflet";
 
-// const socket = io("http://localhost:5001");
-
-export function App() {
-
-  const map = useMap();
-
-  map.on('click', function(e) {
-    // Get the coordinates of the click event
+// Component to handle map click event
+function MapClickHandler({ setCoordinates }) {
+  useMapEvent('click', (e) => {
     const coords = e.latlng;
     console.log("Coordinates: " + coords.lat + ", " + coords.lng);
-});
+    setCoordinates(coords);
+  });
+  return null;
+}
 
-  
-  const [
-    endPoint,
-    // setEndpoint
-  ] = useState(null);
-  const [
-    imageUrl,
-    // setImageUrl
-  ] = useState(null);
-
-  // useEffect(() => {
-  //   socket.on("coordinates", (data) => {
-  //     setEndpoint(data);
-  //   });
-
-  //   socket.on("image", (data) => {
-  //     const blob = new Blob([data], { type: "image/jpeg" });
-  //     const url = URL.createObjectURL(blob);
-  //     setImageUrl(url);
-  //   });
-  // }, []);
+export function App() {
+  const [endPoint, setEndpoint] = useState(null);
+  const [imageUrl, setImageUrl] = useState(null);
+  const [coordinates, setCoordinates] = useState(null);
 
   useEffect(() => {
     const realtime = supabase.realtime;
-
-    // Subscribe to a channel
     const channel = realtime.channel("my-channel");
-
-    // Listen for new messages
-    // channel.on("INSERT", (payload) => {
-    //   console.log("New message:", payload);
-    // });
-
-    // Unsubscribe when the component unmounts
     return () => {
       channel.unsubscribe();
     };
@@ -74,6 +44,7 @@ export function App() {
           attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
         />
+        <MapClickHandler setCoordinates={setCoordinates} />
         {endPoint && (
           <Marker position={endPoint} icon={customIcon}>
             <Popup>
@@ -86,6 +57,11 @@ export function App() {
           </Marker>
         )}
       </MapContainer>
+      {coordinates && (
+        <div>
+          <p>Clicked Coordinates: {coordinates.lat}, {coordinates.lng}</p>
+        </div>
+      )}
     </div>
   );
 }
