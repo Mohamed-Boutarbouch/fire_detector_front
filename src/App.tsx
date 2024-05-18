@@ -2,7 +2,8 @@ import { useEffect, useState } from "react";
 import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
 import { Icon } from "leaflet";
 import "leaflet/dist/leaflet.css";
-import fireIcon from "./assets/fire.png";
+
+import cameraImage from "./assets/camera.png";
 import { supabase } from "./supabaseClient";
 
 interface Camera {
@@ -14,6 +15,7 @@ interface Camera {
 }
 
 export function App() {
+  const [cameras, setCameras] = useState<Camera[]>([]);
   const [
     endPoint,
     // setEndpoint
@@ -24,21 +26,22 @@ export function App() {
   ] = useState(null);
 
   useEffect(() => {
-    async function getCameras() {
-      const { data: cameras } = await supabase.from("cameras").select("*");
+    const getCameras = async () => {
+      const { data, error } = await supabase.from("cameras").select("*");
 
-      console.log(cameras);
-
-      // if (todos.length > 1) {
-      //   setTodos(todos)
-      // }
-    }
+      if (error) {
+        console.error("Error fetching cameras:", error);
+      } else {
+        setCameras((data as Camera[]) ?? []);
+        console.log("Cameras:", data);
+      }
+    };
 
     getCameras();
   }, []);
 
-  const customIcon = new Icon({
-    iconUrl: fireIcon,
+  const cameraIcon = new Icon({
+    iconUrl: cameraImage,
     iconSize: [30, 30],
   });
 
@@ -53,18 +56,20 @@ export function App() {
           attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
         />
-        {/* {cameras.map((camera) => (
-          <Marker
-            key={camera.id}
-            position={[
-              parseFloat(camera.latitude),
-              parseFloat(camera.longitude),
-            ]}
-            icon={customIcon}
-          >
-            <Popup>{camera.area_id}</Popup>
-          </Marker>
-        ))} */}
+        {cameras.map((camera) => {
+          return (
+            <Marker
+              key={camera.id}
+              position={[
+                parseFloat(camera.latitude),
+                parseFloat(camera.longitude),
+              ]}
+              icon={cameraIcon}
+            >
+              <Popup>{camera.area_id}</Popup>
+            </Marker>
+          );
+        })}
       </MapContainer>
     </div>
   );
