@@ -22,19 +22,30 @@ interface Camera {
 
 interface Area {
   id: number;
-  name: string;
+  direction: string;
   center_latitude: string;
   center_longitude: string;
+  created_at: string;
+}
+
+interface Direction {
+  id: number;
+  direction: string;
+  latitude: string;
+  longitude: string;
+  camera_id: number;
   created_at: string;
 }
 
 export function App() {
   const [cameras, setCameras] = useState<Camera[]>([]);
   const [areas, setAreas] = useState<Area[]>([]);
+  const [directions, setDirections] = useState<Direction[]>([]);
 
   useEffect(() => {
     getAreas();
     getCameras();
+    getDirections();
   }, []);
 
   useEffect(() => {
@@ -56,7 +67,7 @@ export function App() {
   }, []);
 
   async function getAreas() {
-    const { data, error } = await supabase.from("areas").select("*");
+    const { data, error } = await supabase.from("areas").select();
 
     if (error) {
       console.error("Error fetching areas:", error);
@@ -66,7 +77,7 @@ export function App() {
   }
 
   async function getCameras() {
-    const { data, error } = await supabase.from("cameras").select("*");
+    const { data, error } = await supabase.from("cameras").select();
 
     if (error) {
       console.error("Error fetching cameras:", error);
@@ -74,11 +85,22 @@ export function App() {
       setCameras((data as Camera[]) ?? []);
     }
   }
+  
+  async function getDirections() {
+    const { data, error } = await supabase.from("directions").select();
+    
+    if (error) {
+      console.error("Error fetching directions:", error);
+    } else {
+      setDirections((data as Direction[]) ?? []);
+    }
+  }
 
   const cameraIcon = new Icon({
     iconUrl: cameraImage,
     iconSize: [30, 30],
   });
+
 
   return (
     <div style={{ height: "100vh", width: "100vw" }}>
