@@ -1,8 +1,14 @@
 import { useEffect, useState } from "react";
-import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
+import {
+  MapContainer,
+  TileLayer,
+  Marker,
+  Popup,
+  // Circle
+} from "react-leaflet";
 import { Icon } from "leaflet";
-import "leaflet/dist/leaflet.css";
 
+import "leaflet/dist/leaflet.css";
 import cameraImage from "./assets/camera.png";
 import { supabase } from "./supabaseClient";
 
@@ -26,10 +32,28 @@ export function App() {
   const [cameras, setCameras] = useState<Camera[]>([]);
   const [areas, setAreas] = useState<Area[]>([]);
 
-  // const [
-  //   imageUrl,
-  //   // setImageUrl
-  // ] = useState(null);
+  useEffect(() => {
+    getAreas();
+    getCameras();
+  }, []);
+
+  useEffect(() => {
+    const channel = supabase.realtime.channel("detections");
+    channel
+      .on(
+        "postgres_changes",
+        {
+          event: "INSERT",
+          schema: "public",
+        },
+        (payload) => console.log(payload.new)
+      )
+      .subscribe();
+
+    return () => {
+      channel.unsubscribe();
+    };
+  }, []);
 
   async function getAreas() {
     const { data, error } = await supabase.from("areas").select("*");
@@ -38,25 +62,18 @@ export function App() {
       console.error("Error fetching areas:", error);
     } else {
       setAreas((data as Area[]) ?? []);
-      console.log("Areas:", data);
     }
   }
 
-  useEffect(() => {
-    const getCameras = async () => {
-      const { data, error } = await supabase.from("cameras").select("*");
+  async function getCameras() {
+    const { data, error } = await supabase.from("cameras").select("*");
 
-      if (error) {
-        console.error("Error fetching cameras:", error);
-      } else {
-        setCameras((data as Camera[]) ?? []);
-        console.log("Cameras:", data);
-      }
-    };
-
-    getAreas();
-    getCameras();
-  }, []);
+    if (error) {
+      console.error("Error fetching cameras:", error);
+    } else {
+      setCameras((data as Camera[]) ?? []);
+    }
+  }
 
   const cameraIcon = new Icon({
     iconUrl: cameraImage,
@@ -78,20 +95,29 @@ export function App() {
             attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
             url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
           />
-          {cameras.map((camera) => {
-            return (
-              <Marker
-                key={camera.id}
-                position={[
-                  parseFloat(camera.latitude),
-                  parseFloat(camera.longitude),
-                ]}
-                icon={cameraIcon}
-              >
-                <Popup>{camera.area_id}</Popup>
-              </Marker>
-            );
-          })}
+          {/* {areas.map((area) => (
+            <Circle
+              key={area.id}
+              center={[
+                parseFloat(area.center_latitude),
+                parseFloat(area.center_longitude),
+              ]}
+              pathOptions={{ fillColor: "blue", color: "blue" }}
+              radius={area.radius}
+            />
+          ))} */}
+          {cameras.map((camera) => (
+            <Marker
+              key={camera.id}
+              position={[
+                parseFloat(camera.latitude),
+                parseFloat(camera.longitude),
+              ]}
+              icon={cameraIcon}
+            >
+              <Popup>{camera.area_id}</Popup>
+            </Marker>
+          ))}
         </MapContainer>
       )}
     </div>
