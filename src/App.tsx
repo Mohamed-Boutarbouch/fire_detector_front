@@ -23,6 +23,12 @@ export function App() {
     // setImageUrl
   ] = useState(null);
 
+
+    async function getAreas() {
+      const { data: areas } = await supabase.from("areas").select();
+      console.log(areas);
+    }
+
   useEffect(() => {
     async function getCameras() {
       const { data: cameras } = await supabase.from("cameras").select("*");
@@ -34,6 +40,7 @@ export function App() {
       // }
     }
 
+    getAreas();
     getCameras();
   }, []);
 
