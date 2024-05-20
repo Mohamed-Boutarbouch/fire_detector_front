@@ -1,18 +1,12 @@
 import { useEffect, useState } from "react";
-import {
-  MapContainer,
-  TileLayer,
-  Marker,
-  Popup,
-  Circle
-} from "react-leaflet";
+import { MapContainer, TileLayer, Marker, Popup, Circle } from "react-leaflet";
 import { Icon } from "leaflet";
 
 import "leaflet/dist/leaflet.css";
 import cameraImage from "./assets/camera.png";
 import { supabase } from "./supabaseClient";
 
-import io from "socket.io-client";
+import io, { Socket } from "socket.io-client";
 
 interface Camera {
   id: number;
@@ -41,8 +35,8 @@ interface Direction {
 
 interface Fire {
   id: number;
-  latitude: string;
-  longitude: string;
+  latitude: number;
+  longitude: number;
 }
 
 export function App() {
@@ -52,7 +46,7 @@ export function App() {
   const [fires, setFires] = useState<Fire[]>([]);
 
   const [frame, setFrame] = useState<string | null>("");
-  const [socket, setSocket] = useState(null);
+  const [socket, setSocket] = useState<Socket | null>(null);
   const [cameraServer, setCameraServer] = useState<string | null>(null);
 
   useEffect(() => {
@@ -60,14 +54,6 @@ export function App() {
     getCameras();
     getDirections();
   }, []);
-
-  const drawCircle = (detection) => {
-
-    const direction = directions.find((direction)=>direction.id == detection.direction_id);
-
-    setFires(fires.push([direction?.latitude , direction?.longitude]))
-
-  };
 
   useEffect(() => {
     const channel = supabase.realtime.channel("detections");
@@ -78,14 +64,29 @@ export function App() {
           event: "INSERT",
           schema: "public",
         },
-        (payload) => drawCircle(payload.new)
+        (payload) => {
+          const direction = directions.find(
+            (direction) => direction.id === payload.new.direction_id
+          );
+
+          if (direction) {
+            setFires((prevFires) => [
+              ...prevFires,
+              {
+                id: direction.id,
+                latitude: parseFloat(direction.latitude),
+                longitude: parseFloat(direction.longitude),
+              },
+            ]);
+          }
+        }
       )
       .subscribe();
 
     return () => {
       channel.unsubscribe();
     };
-  }, []);
+  }, [directions]);
 
   async function getAreas() {
     const { data, error } = await supabase.from("areas").select();
@@ -132,7 +133,7 @@ export function App() {
 
       const newSocket = io(`${cameraServer}`);
       setSocket(newSocket);
-      console.log("")
+      console.log("");
 
       newSocket.on("connect", () => {
         newSocket.emit("start_stream");
@@ -149,7 +150,9 @@ export function App() {
         totalSizeStream = totalSizeStream + kilobytes;
         console.log(`Size of received data: ${kilobytes.toFixed(2)} KB`);
         console.log(
-          `Total Size of received data: ${totalSizeStream.toFixed(2) / 1024} MB`
+          `Total Size of received data: ${(totalSizeStream / 1024).toFixed(
+            2
+          )} MB`
         );
         // Decode base64 and set as image source
         setFrame(`data:image/jpeg;base64,${data}`);
@@ -191,14 +194,11 @@ export function App() {
           {fires.map((fire) => (
             <Circle
               key={fire.id}
-              center={[
-                parseFloat(fire.latitude),
-                parseFloat(fire.longitude),
-              ]}
+              center={[fire.latitude, fire.longitude]}
               pathOptions={{ fillColor: "red", color: "red" }}
               radius={100}
             />
-          ))} 
+          ))}
           {cameras.map((camera) => (
             <Marker
               key={camera.id}
@@ -209,7 +209,7 @@ export function App() {
               icon={cameraIcon}
               eventHandlers={{
                 click: () => {
-                  setFrame(null)
+                  setFrame(null);
                   setCameraServer("http://127.0.0.1:5002");
                 },
               }}
@@ -219,7 +219,7 @@ export function App() {
                 <button
                   onClick={start_server}
                   style={{
-                    display: "absolute",
+                    position: "absolute",
                     right: "2px",
                     top: "2px",
                     backgroundColor: "red",
@@ -233,7 +233,7 @@ export function App() {
                     setFrame(null);
                   }}
                   style={{
-                    display: "absolute",
+                    position: "absolute",
                     right: "2px",
                     top: "2px",
                     backgroundColor: "blue",
@@ -246,9 +246,11 @@ export function App() {
           ))}
         </MapContainer>
       )}
-      {frame && <div className="legend">
-        <img src={frame} alt="Video Frame"/>
-      </div>}
-      </div>
+      {frame && (
+        <div className="legend">
+          <img src={frame} alt="Video Frame" />
+        </div>
+      )}
+    </div>
   );
 }
