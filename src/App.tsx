@@ -44,9 +44,9 @@ export function App() {
   const [areas, setAreas] = useState<Area[]>([]);
   const [directions, setDirections] = useState<Direction[]>([]);
 
-  const [frame, setFrame] = useState("");
+  const [frame, setFrame] = useState<string | null>("");
   const [socket, setSocket] = useState(null);
-  const [cameraServer, setCameraServer] = useState(null);
+  const [cameraServer, setCameraServer] = useState<string | null>(null);
 
   useEffect(() => {
     getAreas();
@@ -122,7 +122,7 @@ export function App() {
       newSocket.on("connect", () => {
         newSocket.emit("start_stream");
       });
-      let totalSizeOfstream = 0
+      let totalSizeStream = 0;
       newSocket.on("video_frame", ({ data }) => {
         // Calculate the size of the received data in bytes
         const stringLength = data.length;
@@ -131,9 +131,11 @@ export function App() {
 
         // Convert bytes to kilobytes
         const kilobytes = bytes / 1024;
-        totalSizeOfstream = totalSizeOfstream + kilobytes;
+        totalSizeStream = totalSizeStream + kilobytes;
         console.log(`Size of received data: ${kilobytes.toFixed(2)} KB`);
-        console.log(`Total Size of received data: ${totalSizeOfstream.toFixed(2) / 1024} MB`);
+        console.log(
+          `Total Size of received data: ${totalSizeStream.toFixed(2) / 1024} MB`
+        );
         // Decode base64 and set as image source
         setFrame(`data:image/jpeg;base64,${data}`);
       });
@@ -147,15 +149,14 @@ export function App() {
       // If cameraServer is null, reset frame
       setFrame("");
     }
-  }, [cameraServer]);
+  }, [cameraServer, socket]);
 
-  const toggle_stream = ()=>{
-    socket?.emit("toggle_stream")
-  }
-  const start_server = ()=>{
-    socket?.emit("start_server")
-  }
-
+  const toggle_stream = () => {
+    socket?.emit("toggle_stream");
+  };
+  const start_server = () => {
+    socket?.emit("start_server");
+  };
 
   return (
     <div style={{ height: "100vh", width: "100vw" }}>
@@ -200,8 +201,31 @@ export function App() {
             >
               <Popup>
                 {camera.id}
-                <button onClick={start_server} style={{display: "absolute", right: "2px", top:"2px", backgroundColor: "red"}}>start</button>
-                <button onClick={()=>{toggle_stream(); setFrame(null)}} style={{display: "absolute", right: "2px", top:"2px", backgroundColor: "blue"}}>stream</button>
+                <button
+                  onClick={start_server}
+                  style={{
+                    display: "absolute",
+                    right: "2px",
+                    top: "2px",
+                    backgroundColor: "red",
+                  }}
+                >
+                  start
+                </button>
+                <button
+                  onClick={() => {
+                    toggle_stream();
+                    setFrame(null);
+                  }}
+                  style={{
+                    display: "absolute",
+                    right: "2px",
+                    top: "2px",
+                    backgroundColor: "blue",
+                  }}
+                >
+                  stream
+                </button>
               </Popup>
             </Marker>
           ))}
@@ -210,6 +234,6 @@ export function App() {
       {frame && <div className="legend">
         <img src={frame} alt="Video Frame"/>
       </div>}
-    </div>
+      </div>
   );
 }
