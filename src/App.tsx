@@ -117,6 +117,7 @@ export function App() {
 
       const newSocket = io(`${cameraServer}`);
       setSocket(newSocket);
+      console.log("")
 
       newSocket.on("connect", () => {
         newSocket.emit("start_stream");
@@ -193,7 +194,7 @@ export function App() {
               eventHandlers={{
                 click: () => {
                   setFrame(null)
-                  setCameraServer("http://192.168.100.4:5000");
+                  setCameraServer("http://127.0.0.1:5002");
                 },
               }}
             >
@@ -207,8 +208,7 @@ export function App() {
         </MapContainer>
       )}
       {frame && <div className="legend">
-        
-        <img src={frame} alt="Video Frame" className="w-full h-full" />
+        <img src={frame} alt="Video Frame"/>
       </div>}
     </div>
   );
