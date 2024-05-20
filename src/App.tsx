@@ -1,132 +1,31 @@
 import { useEffect, useState } from "react";
 import { MapContainer, TileLayer, Marker, Popup, Circle } from "react-leaflet";
-import { Icon } from "leaflet";
-
-import "leaflet/dist/leaflet.css";
-import cameraImage from "./assets/camera.png";
-import { supabase } from "./supabaseClient";
-
 import io, { Socket } from "socket.io-client";
 
-interface Camera {
-  id: number;
-  latitude: string;
-  longitude: string;
-  area_id: number;
-  created_at: string;
-}
+import { useSupabaseService } from "./hooks/supabaseService";
+import { useSupabaseRealTime } from "./hooks/supabaseRealTime";
+import { cameraIcon } from "./icons";
 
-interface Area {
-  id: number;
-  direction: string;
-  center_latitude: string;
-  center_longitude: string;
-  created_at: string;
-}
-
-interface Direction {
-  id: number;
-  direction: string;
-  latitude: string;
-  longitude: string;
-  camera_id: number;
-  created_at: string;
-}
-
-interface Fire {
-  id: number;
-  latitude: number;
-  longitude: number;
-}
+import "leaflet/dist/leaflet.css";
 
 export function App() {
-  const [cameras, setCameras] = useState<Camera[]>([]);
-  const [areas, setAreas] = useState<Area[]>([]);
-  const [directions, setDirections] = useState<Direction[]>([]);
-  const [fires, setFires] = useState<Fire[]>([]);
-
   const [frame, setFrame] = useState<string | null>("");
   const [socket, setSocket] = useState<Socket | null>(null);
   const [cameraServer, setCameraServer] = useState<string | null>(null);
+
+  const { getAreas, getCameras, getDirections, areas, cameras, directions } =
+    useSupabaseService();
+  const { fires } = useSupabaseRealTime(directions);
 
   useEffect(() => {
     getAreas();
     getCameras();
     getDirections();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
-    const channel = supabase.realtime.channel("detections");
-    channel
-      .on(
-        "postgres_changes",
-        {
-          event: "INSERT",
-          schema: "public",
-        },
-        (payload) => {
-          const direction = directions.find(
-            (direction) => direction.id === payload.new.direction_id
-          );
-
-          if (direction) {
-            setFires((prevFires) => [
-              ...prevFires,
-              {
-                id: direction.id,
-                latitude: parseFloat(direction.latitude),
-                longitude: parseFloat(direction.longitude),
-              },
-            ]);
-          }
-        }
-      )
-      .subscribe();
-
-    return () => {
-      channel.unsubscribe();
-    };
-  }, [directions]);
-
-  async function getAreas() {
-    const { data, error } = await supabase.from("areas").select();
-
-    if (error) {
-      console.error("Error fetching areas:", error);
-    } else {
-      setAreas((data as Area[]) ?? []);
-    }
-  }
-
-  async function getCameras() {
-    const { data, error } = await supabase.from("cameras").select();
-
-    if (error) {
-      console.error("Error fetching cameras:", error);
-    } else {
-      setCameras((data as Camera[]) ?? []);
-    }
-  }
-
-  async function getDirections() {
-    const { data, error } = await supabase.from("directions").select();
-
-    if (error) {
-      console.error("Error fetching directions:", error);
-    } else {
-      setDirections((data as Direction[]) ?? []);
-    }
-  }
-
-  const cameraIcon = new Icon({
-    iconUrl: cameraImage,
-    iconSize: [30, 30],
-  });
-
-  // socket.io code from here
-  useEffect(() => {
     if (cameraServer) {
-      // Close previous socket connection
       if (socket) {
         socket.close();
       }
@@ -154,17 +53,14 @@ export function App() {
             2
           )} MB`
         );
-        // Decode base64 and set as image source
         setFrame(`data:image/jpeg;base64,${data}`);
       });
 
-      // Cleanup function
       return () => {
         newSocket.close();
         setFrame("");
       };
     } else {
-      // If cameraServer is null, reset frame
       setFrame("");
     }
   }, [cameraServer, socket]);
