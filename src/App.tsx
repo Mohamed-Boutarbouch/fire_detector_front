@@ -92,7 +92,7 @@ export function App() {
               key={fire.id}
               center={[fire.latitude, fire.longitude]}
               pathOptions={{ fillColor: "red", color: "red" }}
-              radius={50}
+              radius={90}
             />
           ))}
           {cameras.map((camera) => (
