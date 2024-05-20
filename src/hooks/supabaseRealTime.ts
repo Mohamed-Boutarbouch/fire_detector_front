@@ -4,6 +4,7 @@ import { Direction, Fire } from "../types";
 
 export function useSupabaseRealTime(directions: Direction[]) {
   const [fires, setFires] = useState<Fire[]>([]);
+  const [uniqueIds, setUniqueIds] = useState<Set<number>>(new Set());
 
   useEffect(() => {
     const channel = supabase.realtime.channel("detections");
@@ -20,14 +21,18 @@ export function useSupabaseRealTime(directions: Direction[]) {
           );
 
           if (direction) {
-            setFires((prevFires) => [
-              ...prevFires,
-              {
-                id: direction.id,
-                latitude: parseFloat(direction.latitude),
-                longitude: parseFloat(direction.longitude),
-              },
-            ]);
+            const fireId = direction.id;
+            if (!uniqueIds.has(fireId)) {
+              setUniqueIds((prevIds) => new Set([...prevIds, fireId]));
+              setFires((prevFires) => [
+                ...prevFires,
+                {
+                  id: fireId,
+                  latitude: parseFloat(direction.latitude),
+                  longitude: parseFloat(direction.longitude),
+                },
+              ]);
+            }
           }
         }
       )
@@ -36,7 +41,7 @@ export function useSupabaseRealTime(directions: Direction[]) {
     return () => {
       channel.unsubscribe();
     };
-  }, [directions]);
+  }, [directions, uniqueIds]);
 
   return { fires };
 }
