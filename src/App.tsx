@@ -12,6 +12,8 @@ import "leaflet/dist/leaflet.css";
 import cameraImage from "./assets/camera.png";
 import { supabase } from "./supabaseClient";
 
+import io from "socket.io-client";
+
 interface Camera {
   id: number;
   latitude: string;
@@ -41,6 +43,10 @@ export function App() {
   const [cameras, setCameras] = useState<Camera[]>([]);
   const [areas, setAreas] = useState<Area[]>([]);
   const [directions, setDirections] = useState<Direction[]>([]);
+
+  const [frame, setFrame] = useState("");
+  const [socket, setSocket] = useState(null);
+  const [cameraServer, setCameraServer] = useState(null);
 
   useEffect(() => {
     getAreas();
@@ -85,10 +91,10 @@ export function App() {
       setCameras((data as Camera[]) ?? []);
     }
   }
-  
+
   async function getDirections() {
     const { data, error } = await supabase.from("directions").select();
-    
+
     if (error) {
       console.error("Error fetching directions:", error);
     } else {
@@ -100,6 +106,54 @@ export function App() {
     iconUrl: cameraImage,
     iconSize: [30, 30],
   });
+
+  // socket.io code from here
+  useEffect(() => {
+    if (cameraServer) {
+      // Close previous socket connection
+      if (socket) {
+        socket.close();
+      }
+
+      const newSocket = io(`${cameraServer}`);
+      setSocket(newSocket);
+
+      newSocket.on("connect", () => {
+        newSocket.emit("start_stream");
+      });
+      let totalSizeOfstream = 0
+      newSocket.on("video_frame", ({ data }) => {
+        // Calculate the size of the received data in bytes
+        const stringLength = data.length;
+        // Each base64 character represents 6 bits, so we need to convert it to bytes
+        const bytes = Math.ceil((stringLength * 3) / 4);
+
+        // Convert bytes to kilobytes
+        const kilobytes = bytes / 1024;
+        totalSizeOfstream = totalSizeOfstream + kilobytes;
+        console.log(`Size of received data: ${kilobytes.toFixed(2)} KB`);
+        console.log(`Total Size of received data: ${totalSizeOfstream.toFixed(2) / 1024} MB`);
+        // Decode base64 and set as image source
+        setFrame(`data:image/jpeg;base64,${data}`);
+      });
+
+      // Cleanup function
+      return () => {
+        newSocket.close();
+        setFrame("");
+      };
+    } else {
+      // If cameraServer is null, reset frame
+      setFrame("");
+    }
+  }, [cameraServer]);
+
+  const toggle_stream = ()=>{
+    socket?.emit("toggle_stream")
+  }
+  const start_server = ()=>{
+    socket?.emit("start_server")
+  }
 
 
   return (
@@ -136,12 +190,26 @@ export function App() {
                 parseFloat(camera.longitude),
               ]}
               icon={cameraIcon}
+              eventHandlers={{
+                click: () => {
+                  setFrame(null)
+                  setCameraServer("http://192.168.100.4:5000");
+                },
+              }}
             >
-              <Popup>{camera.area_id}</Popup>
+              <Popup>
+                {camera.id}
+                <button onClick={start_server} style={{display: "absolute", right: "2px", top:"2px", backgroundColor: "red"}}>start</button>
+                <button onClick={()=>{toggle_stream(); setFrame(null)}} style={{display: "absolute", right: "2px", top:"2px", backgroundColor: "blue"}}>stream</button>
+              </Popup>
             </Marker>
           ))}
         </MapContainer>
       )}
+      {frame && <div className="legend">
+        
+        <img src={frame} alt="Video Frame" className="w-full h-full" />
+      </div>}
     </div>
   );
 }

@@ -1,0 +1,9 @@
+.legend {
+    bottom: 30px;
+    font: 12px/20px 'Helvetica Neue', Arial, Helvetica, sans-serif;
+    position: absolute;
+    right: 10px;
+    z-index: 800;
+    max-width: 50%;
+    max-height: 80%;
+  }
