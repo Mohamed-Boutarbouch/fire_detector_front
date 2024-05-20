@@ -4,7 +4,7 @@ import {
   TileLayer,
   Marker,
   Popup,
-  // Circle
+  Circle
 } from "react-leaflet";
 import { Icon } from "leaflet";
 
@@ -39,10 +39,17 @@ interface Direction {
   created_at: string;
 }
 
+interface Fire {
+  id: number;
+  latitude: string;
+  longitude: string;
+}
+
 export function App() {
   const [cameras, setCameras] = useState<Camera[]>([]);
   const [areas, setAreas] = useState<Area[]>([]);
   const [directions, setDirections] = useState<Direction[]>([]);
+  const [fires, setFires] = useState<Fire[]>([]);
 
   const [frame, setFrame] = useState("");
   const [socket, setSocket] = useState(null);
@@ -54,6 +61,14 @@ export function App() {
     getDirections();
   }, []);
 
+  const drawCircle = (detection) => {
+
+    const direction = directions.find((direction)=>direction.id == detection.direction_id);
+
+    setFires(fires.push([direction?.latitude , direction?.longitude]))
+
+  };
+
   useEffect(() => {
     const channel = supabase.realtime.channel("detections");
     channel
@@ -63,7 +78,7 @@ export function App() {
           event: "INSERT",
           schema: "public",
         },
-        (payload) => console.log(payload.new)
+        (payload) => drawCircle(payload.new)
       )
       .subscribe();
 
@@ -172,17 +187,17 @@ export function App() {
             attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
             url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
           />
-          {/* {areas.map((area) => (
+          {fires.map((fire) => (
             <Circle
-              key={area.id}
+              key={fire.id}
               center={[
-                parseFloat(area.center_latitude),
-                parseFloat(area.center_longitude),
+                parseFloat(fire.latitude),
+                parseFloat(fire.longitude),
               ]}
-              pathOptions={{ fillColor: "blue", color: "blue" }}
-              radius={area.radius}
+              pathOptions={{ fillColor: "red", color: "red" }}
+              radius={100}
             />
-          ))} */}
+          ))} 
           {cameras.map((camera) => (
             <Marker
               key={camera.id}
