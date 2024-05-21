@@ -1,12 +1,14 @@
-import { MapContainer, TileLayer, Marker, Popup, Circle } from "react-leaflet";
+import { MapContainer, Marker, Popup, TileLayer } from "react-leaflet";
 import io, { Socket } from "socket.io-client";
 import { useEffect, useState } from "react";
 
 import { useSupabaseRealTime } from "./hooks/supabaseRealTime";
 import { useSupabaseService } from "./hooks/supabaseService";
-import { cameraIcon } from "./icons";
 
 import "leaflet/dist/leaflet.css";
+
+import { FireCircle } from "./FireCircle";
+import { cameraIcon } from "./icons";
 
 export function App() {
   const [frame, setFrame] = useState<string | null>("");
@@ -68,15 +70,16 @@ export function App() {
     }
   }, [cameraServer, socket]);
 
-  const toggle_stream = () => {
+  const toggleStream = () => {
     socket?.emit("toggle_stream");
   };
-  const start_server = () => {
+
+  const startServer = () => {
     socket?.emit("start_server");
   };
 
   return (
-    <div style={{ height: "100vh", width: "100vw" }}>
+    <>
       {areas.length > 0 && (
         <MapContainer
           style={{ height: "100%", width: "100%" }}
@@ -91,12 +94,7 @@ export function App() {
             url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
           />
           {fires.map((fire) => (
-            <Circle
-              key={fire.id}
-              center={[fire.latitude, fire.longitude]}
-              pathOptions={{ fillColor: "red", color: "red" }}
-              radius={90}
-            />
+            <FireCircle key={fire.id} fire={fire} />
           ))}
           {cameras.map((camera) => (
             <Marker
@@ -116,7 +114,7 @@ export function App() {
               <Popup>
                 {camera.id}
                 <button
-                  onClick={start_server}
+                  onClick={startServer}
                   style={{
                     position: "absolute",
                     right: "2px",
@@ -128,7 +126,7 @@ export function App() {
                 </button>
                 <button
                   onClick={() => {
-                    toggle_stream();
+                    toggleStream();
                     setFrame(null);
                   }}
                   style={{
@@ -150,6 +148,6 @@ export function App() {
           <img src={frame} alt="Video Frame" />
         </div>
       )}
-    </div>
+    </>
   );
 }
