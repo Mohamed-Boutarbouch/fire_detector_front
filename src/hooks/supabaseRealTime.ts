@@ -1,13 +1,18 @@
 import { useEffect, useState } from "react";
+
 import { supabase } from "../supabaseClient";
 import { Direction, Fire } from "../types";
 
 export function useSupabaseRealTime(directions: Direction[]) {
+  const ONE_MINUTE = 60000;
+
   const [fires, setFires] = useState<Fire[]>([]);
   const [uniqueIds, setUniqueIds] = useState<Set<number>>(new Set());
 
   useEffect(() => {
     const channel = supabase.realtime.channel("detections");
+    const timeouts: ReturnType<typeof setTimeout>[] = [];
+
     channel
       .on(
         "postgres_changes",
@@ -32,6 +37,12 @@ export function useSupabaseRealTime(directions: Direction[]) {
                   longitude: parseFloat(direction.longitude),
                 },
               ]);
+
+              const timeout = setTimeout(() => {
+                setFires((prevFires) => prevFires.slice(1));
+              }, ONE_MINUTE);
+
+              timeouts.push(timeout);
             }
           }
         }
@@ -40,6 +51,7 @@ export function useSupabaseRealTime(directions: Direction[]) {
 
     return () => {
       channel.unsubscribe();
+      timeouts.forEach((timeout) => clearTimeout(timeout));
     };
   }, [directions, uniqueIds]);
 

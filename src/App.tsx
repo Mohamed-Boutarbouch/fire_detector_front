@@ -1,9 +1,9 @@
-import { useEffect, useState } from "react";
 import { MapContainer, TileLayer, Marker, Popup, Circle } from "react-leaflet";
 import io, { Socket } from "socket.io-client";
+import { useEffect, useState } from "react";
 
-import { useSupabaseService } from "./hooks/supabaseService";
 import { useSupabaseRealTime } from "./hooks/supabaseRealTime";
+import { useSupabaseService } from "./hooks/supabaseService";
 import { cameraIcon } from "./icons";
 
 import "leaflet/dist/leaflet.css";
@@ -32,12 +32,13 @@ export function App() {
 
       const newSocket = io(`${cameraServer}`);
       setSocket(newSocket);
-      console.log("");
 
       newSocket.on("connect", () => {
         newSocket.emit("start_stream");
       });
+
       let totalSizeStream = 0;
+
       newSocket.on("video_frame", ({ data }) => {
         // Calculate the size of the received data in bytes
         const stringLength = data.length;
@@ -47,12 +48,14 @@ export function App() {
         // Convert bytes to kilobytes
         const kilobytes = bytes / 1024;
         totalSizeStream = totalSizeStream + kilobytes;
+
         console.log(`Size of received data: ${kilobytes.toFixed(2)} KB`);
         console.log(
           `Total Size of received data: ${(totalSizeStream / 1024).toFixed(
             2
           )} MB`
         );
+
         setFrame(`data:image/jpeg;base64,${data}`);
       });
 
