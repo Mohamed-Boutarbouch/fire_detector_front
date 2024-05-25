@@ -4,14 +4,14 @@ import { useEffect, useState } from "react";
 
 import { useSupabaseRealTime } from "./hooks/supabaseRealTime";
 import { useSupabaseService } from "./hooks/supabaseService";
+import { FireCircle } from "./FireCircle";
 
 import "leaflet/dist/leaflet.css";
 import "leaflet-rotatedmarker";
 
-import { FireCircle } from "./FireCircle";
 import { cameraIcon } from "./icons";
-import live from "./live.png";
-import redButton from "./circle.png";
+import live from "./assets/live.png";
+import redButton from "./assets/circle.png";
 
 export function App() {
   const [frame, setFrame] = useState<string | null>("");
@@ -127,13 +127,13 @@ export function App() {
     }
   }, [cameraServer, loading, socket]);
 
-  const toggle_stream = () => {
-    socket?.emit("toggle_stream");
-  };
+  // const toggle_stream = () => {
+  //   socket?.emit("toggle_stream");
+  // };
 
-  const start_detection_functionality = () => {
-    socket?.emit("start_detection_functionality");
-  };
+  // const start_detection_functionality = () => {
+  //   socket?.emit("start_detection_functionality");
+  // };
 
   return (
     <>
