@@ -22,7 +22,8 @@ export function App() {
 
   const { getAreas, getCameras, getDirections, areas, cameras, directions } =
     useSupabaseService();
-  const { fires } = useSupabaseRealTime(directions);
+  const { fires, enableSound, isSoundEnabled } =
+    useSupabaseRealTime(directions);
 
   useEffect(() => {
     getAreas();
@@ -96,6 +97,12 @@ export function App() {
 
   return (
     <>
+      <button
+        onClick={enableSound}
+        style={{ backgroundColor: isSoundEnabled ? "green" : "red" }}
+      >
+        Enable Alarm Sound
+      </button>
       {areas.length > 0 && (
         <MapContainer
           style={{ height: "100%", width: "100%" }}

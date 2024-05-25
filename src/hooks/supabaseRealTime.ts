@@ -1,4 +1,4 @@
-import { useEffect, useState, useMemo, useCallback } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { supabase } from "../supabaseClient";
 import { Direction, Fire } from "../types";
 
@@ -6,15 +6,22 @@ export function useSupabaseRealTime(directions: Direction[]) {
   const TEN_SECONDS = 10000;
 
   const [fires, setFires] = useState<Fire[]>([]);
-  const [isPlaybackDeferred, setIsPlaybackDeferred] = useState(false);
+  const [isSoundEnabled, setIsSoundEnabled] = useState(false);
 
   const alarmSound = useMemo(() => new Audio("/alarm.mp3"), []);
 
-  const attemptPlaySound = useCallback(() => {
-    alarmSound.play().catch(() => {
-      setIsPlaybackDeferred(true);
-    });
-  }, [alarmSound]);
+  const enableSound = () => {
+    alarmSound
+      .play()
+      .then(() => {
+        alarmSound.pause();
+        alarmSound.currentTime = 0;
+        setIsSoundEnabled(true);
+      })
+      .catch((error) => {
+        console.error("Error enabling alarm sound:", error);
+      });
+  };
 
   useEffect(() => {
     const channel = supabase.realtime.channel("detections");
@@ -36,7 +43,11 @@ export function useSupabaseRealTime(directions: Direction[]) {
           if (direction) {
             setFires((prevFires) => {
               if (!prevFires.some((fire) => fire.id === direction.id)) {
-                attemptPlaySound();
+                if (isSoundEnabled) {
+                  alarmSound.play().catch((error) => {
+                    console.error("Error playing alarm sound:", error);
+                  });
+                }
                 return [
                   ...prevFires,
                   {
@@ -57,26 +68,7 @@ export function useSupabaseRealTime(directions: Direction[]) {
     return () => {
       channel.unsubscribe();
     };
-  }, [directions, alarmSound, attemptPlaySound]);
-
-  useEffect(() => {
-    const handleUserInteraction = () => {
-      if (isPlaybackDeferred) {
-        alarmSound.play().catch((error) => {
-          console.error("Error playing deferred alarm sound:", error);
-        });
-        setIsPlaybackDeferred(false);
-      }
-    };
-
-    document.addEventListener("click", handleUserInteraction);
-    document.addEventListener("keydown", handleUserInteraction);
-
-    return () => {
-      document.removeEventListener("click", handleUserInteraction);
-      document.removeEventListener("keydown", handleUserInteraction);
-    };
-  }, [isPlaybackDeferred, alarmSound]);
+  }, [directions, isSoundEnabled, alarmSound]);
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -92,5 +84,5 @@ export function useSupabaseRealTime(directions: Direction[]) {
     return () => clearInterval(interval);
   }, [fires]);
 
-  return { fires };
+  return { fires, enableSound, isSoundEnabled };
 }
