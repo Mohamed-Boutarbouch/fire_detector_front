@@ -11,7 +11,10 @@ export function FireCircle({ fire }: FireCircleProps) {
     <Circle
       key={fire.id}
       center={[fire.latitude, fire.longitude]}
-      pathOptions={{ fillColor: fire.type=="fire"? "red":"yellow", color: fire.type=="fire"? "red":"yellow" }}
+      pathOptions={{
+        fillColor: fire.type === "fire" ? "red" : "yellow",
+        color: fire.type === "fire" ? "red" : "yellow",
+      }}
       radius={90}
     />
   );

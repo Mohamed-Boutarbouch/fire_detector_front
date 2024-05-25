@@ -7,11 +7,13 @@ export function useSupabaseRealTime(directions: Direction[]) {
   const ONE_MINUTE = 60000;
 
   const [fires, setFires] = useState<Fire[]>([]);
+
+  console.log(fires);
+
   const [uniqueIds, setUniqueIds] = useState<Set<number>>(new Set());
 
   useEffect(() => {
     const channel = supabase.realtime.channel("detections");
-    const timeouts: ReturnType<typeof setTimeout>[] = [];
 
     channel
       .on(
@@ -21,10 +23,11 @@ export function useSupabaseRealTime(directions: Direction[]) {
           schema: "public",
         },
         (payload) => {
+          const { direction_id, type } = payload.new;
+
           const direction = directions.find(
-            (direction) => direction.id === payload.new.direction_id
+            (direction) => direction.id === direction_id
           );
-          // direction?.type=payload.new.type;
 
           if (direction) {
             const fireId = direction.id;
@@ -36,15 +39,9 @@ export function useSupabaseRealTime(directions: Direction[]) {
                   id: fireId,
                   latitude: parseFloat(direction.latitude),
                   longitude: parseFloat(direction.longitude),
-                  type: payload.new.type
+                  type,
                 },
               ]);
-
-              const timeout = setTimeout(() => {
-                setFires((prevFires) => prevFires.slice(1));
-              }, ONE_MINUTE);
-
-              timeouts.push(timeout);
             }
           }
         }
@@ -53,9 +50,22 @@ export function useSupabaseRealTime(directions: Direction[]) {
 
     return () => {
       channel.unsubscribe();
-      timeouts.forEach((timeout) => clearTimeout(timeout));
     };
   }, [directions, uniqueIds]);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setFires((prevCameras) => {
+        if (prevCameras.length === 0) {
+          clearInterval(interval);
+          return prevCameras;
+        }
+        return prevCameras.slice(1);
+      });
+    }, ONE_MINUTE);
+
+    return () => clearInterval(interval);
+  }, [fires]);
 
   return { fires };
 }
