@@ -24,6 +24,7 @@ export function useSupabaseRealTime(directions: Direction[]) {
           const direction = directions.find(
             (direction) => direction.id === payload.new.direction_id
           );
+          // direction?.type=payload.new.type;
 
           if (direction) {
             const fireId = direction.id;
@@ -35,6 +36,7 @@ export function useSupabaseRealTime(directions: Direction[]) {
                   id: fireId,
                   latitude: parseFloat(direction.latitude),
                   longitude: parseFloat(direction.longitude),
+                  type: payload.new.type
                 },
               ]);
 

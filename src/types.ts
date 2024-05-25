@@ -24,7 +24,8 @@ export interface Direction {
 }
 
 export interface Fire {
-  id: number;
+  id: number;  
+  type: 'fire'|'smoke';
   latitude: number;
   longitude: number;
 }
