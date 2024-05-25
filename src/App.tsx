@@ -10,11 +10,14 @@ import "leaflet-rotatedmarker";
 
 import { FireCircle } from "./FireCircle";
 import { cameraIcon } from "./icons";
+import live from "./live.png";
+import redButton from "./circle.png";
 
 export function App() {
   const [frame, setFrame] = useState<string | null>("");
   const [socket, setSocket] = useState<Socket | null>(null);
   const [cameraServer, setCameraServer] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
 
   const { getAreas, getCameras, getDirections, areas, cameras, directions } =
     useSupabaseService();
@@ -71,12 +74,65 @@ export function App() {
     }
   }, [cameraServer, socket]);
 
-  const toggleStream = () => {
+  // socket.io code from here
+  useEffect(() => {
+    if (cameraServer) {
+      // Close previous socket connection
+      if (socket) {
+        socket.close();
+      }
+
+      const newSocket = io(`${cameraServer}`);
+      setSocket(newSocket);
+      console.log("");
+
+      newSocket.on("connect", () => {
+        newSocket.emit("start_stream");
+      });
+
+      let totalSizeStream = 0;
+
+      // This is a listener to the frames coming from python
+      newSocket.on("video_frame", ({ data }) => {
+        // Calculate the size of the received data in bytes
+        const stringLength = data.length;
+
+        // Each base64 character represents 6 bits, so we need to convert it to bytes
+        const bytes = Math.ceil((stringLength * 3) / 4);
+
+        // Convert bytes to kilobytes
+        const kilobytes = bytes / 1024;
+
+        totalSizeStream = totalSizeStream + kilobytes;
+        console.log(`Size of received data: ${kilobytes.toFixed(2)} KB`);
+        console.log(
+          `Total Size of received data: ${totalSizeStream.toFixed(2) / 1024} MB`
+        );
+
+        if (loading) {
+          setLoading(false);
+        }
+        // Decode base64 and set as image source
+        setFrame(`data:image/jpeg;base64,${data}`);
+      });
+
+      // Cleanup function
+      return () => {
+        newSocket.close();
+        setFrame("");
+      };
+    } else {
+      // If cameraServer is null, reset frame
+      setFrame("");
+    }
+  }, [cameraServer, loading, socket]);
+
+  const toggle_stream = () => {
     socket?.emit("toggle_stream");
   };
 
-  const startServer = () => {
-    socket?.emit("start_server");
+  const start_detection_functionality = () => {
+    socket?.emit("start_detection_functionality");
   };
 
   return (
@@ -114,32 +170,25 @@ export function App() {
               }}
             >
               <Popup>
-                {camera.id}
-                <button
-                  onClick={startServer}
-                  style={{
-                    position: "absolute",
-                    right: "2px",
-                    top: "2px",
-                    backgroundColor: "red",
-                  }}
-                >
-                  start
-                </button>
-                <button
-                  onClick={() => {
-                    toggleStream();
-                    setFrame(null);
-                  }}
-                  style={{
-                    position: "absolute",
-                    right: "2px",
-                    top: "2px",
-                    backgroundColor: "blue",
-                  }}
-                >
-                  stream
-                </button>
+                {loading ? (
+                  <div className="loading">Loading...</div>
+                ) : (
+                  <div
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: "1px",
+                    }}
+                  >
+                    <img
+                      src={redButton}
+                      style={{ width: "12px", height: "12px" }}
+                    />
+                    Live
+                  </div>
+                )}
+                {/* <button onClick={start_detection_functionality} style={{display: "absolute", right: "2px", top:"2px", backgroundColor: "red"}}>start</button>
+                <button onClick={()=>{toggle_stream(); setFrame(null)}} style={{display: "absolute", right: "2px", top:"2px", backgroundColor: "blue"}}>stream</button> */}
               </Popup>
             </Marker>
           ))}
@@ -147,6 +196,7 @@ export function App() {
       )}
       {frame && (
         <div className="legend">
+          <img src={live} className="live" />
           <img src={frame} alt="Video Frame" />
         </div>
       )}
