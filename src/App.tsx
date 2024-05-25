@@ -1,4 +1,4 @@
-import { MapContainer, Marker, Popup, TileLayer } from "react-leaflet";
+import { MapContainer, Marker, Popup, TileLayer, Polygon } from "react-leaflet";
 import io, { Socket } from "socket.io-client";
 import { useEffect, useState } from "react";
 
@@ -18,6 +18,7 @@ export function App() {
   const [socket, setSocket] = useState<Socket | null>(null);
   const [cameraServer, setCameraServer] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+  const purpleOptions = { color: 'blue' , opacity: 0.3}
 
   const { getAreas, getCameras, getDirections, areas, cameras, directions } =
     useSupabaseService();
@@ -154,7 +155,8 @@ export function App() {
             <FireCircle key={fire.id} fire={fire} />
           ))}
           {cameras.map((camera) => (
-            <Marker
+            <div key={camera.id}>
+              <Marker
               key={camera.id}
               position={[
                 parseFloat(camera.latitude),
@@ -191,6 +193,15 @@ export function App() {
                 <button onClick={()=>{toggle_stream(); setFrame(null)}} style={{display: "absolute", right: "2px", top:"2px", backgroundColor: "blue"}}>stream</button> */}
               </Popup>
             </Marker>
+            <Polygon pathOptions={purpleOptions} positions={
+                [
+                  [parseFloat(camera.p1latitude), parseFloat(camera.p1longitude)],
+                  [parseFloat(camera.p2latitude), parseFloat(camera.p2longitude)],
+                  [parseFloat(camera.p3latitude), parseFloat(camera.p3longitude)],
+                  [parseFloat(camera.p4latitude), parseFloat(camera.p4longitude)],
+                ]
+            } />
+            </div>
           ))}
         </MapContainer>
       )}

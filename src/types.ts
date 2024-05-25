@@ -5,6 +5,14 @@ export interface Camera {
   rotationAngle: number;
   area_id: number;
   created_at: string;
+  p1latitude: string;
+  p1longitude: string;
+  p2latitude: string;
+  p2longitude: string;
+  p3latitude: string;
+  p3longitude: string;
+  p4latitude: string;
+  p4longitude: string;
 }
 
 export interface Area {
