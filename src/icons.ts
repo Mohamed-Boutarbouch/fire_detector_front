@@ -1,6 +1,6 @@
 import { Icon } from "leaflet";
 
-import cameraImage from "./assets/camera.png";
+import cameraImage from "/camera.png";
 
 export const cameraIcon = new Icon({
   iconUrl: cameraImage,

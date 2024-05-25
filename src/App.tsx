@@ -10,8 +10,8 @@ import "leaflet/dist/leaflet.css";
 import "leaflet-rotatedmarker";
 
 import { cameraIcon } from "./icons";
-import live from "./assets/live.png";
-import redButton from "./assets/circle.png";
+import live from "/live.png";
+import redButton from "/circle.png";
 
 export function App() {
   const [frame, setFrame] = useState<string | null>("");
