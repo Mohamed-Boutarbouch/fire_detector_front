@@ -6,6 +6,7 @@ import { useSupabaseRealTime } from "./hooks/supabaseRealTime";
 import { useSupabaseService } from "./hooks/supabaseService";
 
 import "leaflet/dist/leaflet.css";
+import "leaflet-rotatedmarker";
 
 import { FireCircle } from "./FireCircle";
 import { cameraIcon } from "./icons";
@@ -25,6 +26,8 @@ export function App() {
     getDirections();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  console.log(cameras);
 
   useEffect(() => {
     if (cameraServer) {
@@ -104,6 +107,7 @@ export function App() {
                 parseFloat(camera.longitude),
               ]}
               icon={cameraIcon}
+              rotationAngle={camera.rotationAngle}
               eventHandlers={{
                 click: () => {
                   setFrame(null);

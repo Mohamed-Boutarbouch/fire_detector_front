@@ -2,6 +2,7 @@ export interface Camera {
   id: number;
   latitude: string;
   longitude: string;
+  rotationAngle: number;
   area_id: number;
   created_at: string;
 }
