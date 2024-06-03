@@ -87,11 +87,13 @@ export function useSupabaseRealTime(directions: Direction[]) {
     return () => clearInterval(interval);
   }, [fires]);
 
-  return {
-    fires,
-    enableSound,
-    isSoundEnabled,
-    isFireDetected,
-    setIsFireDetected,
-  };
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setIsFireDetected(false);
+    }, 60000);
+
+    return () => clearInterval(interval);
+  }, [fires]);
+
+  return { fires, enableSound, isSoundEnabled, isFireDetected };
 }
