@@ -91,5 +91,15 @@ export function useSupabaseRealTime(directions: Direction[]) {
     return () => clearInterval(interval);
   }, [fires]);
 
+  useEffect(() => {
+    const timeoutId = setTimeout(() => {
+      if (fires.length === 0 && isFireDetected === true) {
+        setIsFireDetected(false);
+      }
+    }, TWENTY_SECONDS);
+
+    return () => clearTimeout(timeoutId);
+  }, [fires, isFireDetected]);
+
   return { fires, enableSound, isSoundEnabled, isFireDetected };
 }
