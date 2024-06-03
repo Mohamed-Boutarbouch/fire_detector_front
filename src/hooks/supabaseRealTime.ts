@@ -9,7 +9,11 @@ export function useSupabaseRealTime(directions: Direction[]) {
   const [isSoundEnabled, setIsSoundEnabled] = useState(false);
   const [isFireDetected, setIsFireDetected] = useState(false);
 
-  const alarmSound = useMemo(() => new Audio("/alarm.mp3"), []);
+  const alarmSound = useMemo(() => {
+    const audio = new Audio("/alarm.mp3");
+    audio.loop = true;
+    return audio;
+  }, []);
 
   const enableSound = () => {
     alarmSound
