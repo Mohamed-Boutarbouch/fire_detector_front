@@ -76,7 +76,14 @@ export function App() {
   return (
     <section className={`map-container ${isFireDetected ? "flash-red" : ""}`}>
       {isFireDetected ? (
-        <span style={{ fontSize: "50px", marginLeft: "40%", color: "white" }}>
+        <span
+          style={{
+            fontFamily: "monospace",
+            fontSize: "50px",
+            textAlign: "center",
+            color: "white",
+          }}
+        >
           FIRE DETECTED
         </span>
       ) : (
