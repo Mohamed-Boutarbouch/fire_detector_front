@@ -9,11 +9,7 @@ export function useSupabaseRealTime(directions: Direction[]) {
   const [isSoundEnabled, setIsSoundEnabled] = useState(false);
   const [isFireDetected, setIsFireDetected] = useState(false);
 
-  const alarmSound = useMemo(() => {
-    const audio = new Audio("/alarm.mp3");
-    audio.loop = true;
-    return audio;
-  }, []);
+  const alarmSound = useMemo(() => new Audio("/alarm.mp3"), []);
 
   const enableSound = () => {
     alarmSound
@@ -91,15 +87,11 @@ export function useSupabaseRealTime(directions: Direction[]) {
     return () => clearInterval(interval);
   }, [fires]);
 
-  useEffect(() => {
-    const timeoutId = setTimeout(() => {
-      if (fires.length === 0 && isFireDetected === true) {
-        setIsFireDetected(false);
-      }
-    }, TWENTY_SECONDS);
-
-    return () => clearTimeout(timeoutId);
-  }, [fires, isFireDetected]);
-
-  return { fires, enableSound, isSoundEnabled, isFireDetected };
+  return {
+    fires,
+    enableSound,
+    isSoundEnabled,
+    isFireDetected,
+    setIsFireDetected,
+  };
 }

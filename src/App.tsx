@@ -7,6 +7,7 @@ import { useSupabaseService } from "./hooks/supabaseService";
 import { FireCircle } from "./FireCircle";
 import { CenterAreas } from "./CenterAreas";
 import { AlarmButton } from "./AlarmButton";
+import { EffectsButton } from "./EffectsButton";
 
 import "leaflet/dist/leaflet.css";
 import "leaflet-rotatedmarker";
@@ -24,8 +25,13 @@ export function App() {
 
   const { getAreas, getCameras, getDirections, areas, cameras, directions } =
     useSupabaseService();
-  const { fires, enableSound, isSoundEnabled, isFireDetected } =
-    useSupabaseRealTime(directions);
+  const {
+    fires,
+    enableSound,
+    isSoundEnabled,
+    isFireDetected,
+    setIsFireDetected,
+  } = useSupabaseRealTime(directions);
 
   const ZOOM = 15;
 
@@ -79,6 +85,9 @@ export function App() {
       className={isFireDetected ? "flash-red" : ""}
     >
       <AlarmButton enableSound={enableSound} isSoundEnabled={isSoundEnabled} />
+      {isFireDetected && (
+        <EffectsButton setIsFireDetected={setIsFireDetected} />
+      )}
       {areas.length > 0 && (
         <MapContainer
           style={{ height: "100%", width: "100%" }}
