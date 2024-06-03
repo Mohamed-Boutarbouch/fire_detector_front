@@ -81,6 +81,7 @@ export function useSupabaseRealTime(directions: Direction[]) {
         }
         return prevFires.slice(1);
       });
+      setIsFireDetected(false);
     }, TWENTY_SECONDS);
 
     return () => clearInterval(interval);
