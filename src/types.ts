@@ -18,6 +18,7 @@ export interface Camera {
 
 export interface Area {
   id: number;
+  name: string;
   direction: string;
   center_latitude: string;
   center_longitude: string;
@@ -34,8 +35,8 @@ export interface Direction {
 }
 
 export interface Fire {
-  id: number;  
-  type: 'fire'|'smoke';
+  id: number;
+  type: "fire" | "smoke";
   latitude: number;
   longitude: number;
 }

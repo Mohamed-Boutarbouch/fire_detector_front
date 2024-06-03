@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import { useSupabaseRealTime } from "./hooks/supabaseRealTime";
 import { useSupabaseService } from "./hooks/supabaseService";
 import { FireCircle } from "./FireCircle";
+import { CenterAreas } from "./CenterAreas";
 
 import "leaflet/dist/leaflet.css";
 import "leaflet-rotatedmarker";
@@ -24,6 +25,8 @@ export function App() {
     useSupabaseService();
   const { fires, enableSound, isSoundEnabled } =
     useSupabaseRealTime(directions);
+
+  const ZOOM = 15;
 
   useEffect(() => {
     getAreas();
@@ -48,7 +51,6 @@ export function App() {
         newSocket.emit("start_stream");
       });
 
-
       // This is a listener to the frames coming from python
       newSocket.on("video_frame", ({ data }) => {
         if (loading) {
@@ -67,8 +69,8 @@ export function App() {
       // If cameraServer is null, reset frame
       setFrame("");
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [cameraServer]);
-
 
   return (
     <>
@@ -85,12 +87,14 @@ export function App() {
             parseFloat(areas[0]?.center_latitude),
             parseFloat(areas[0]?.center_longitude),
           ]}
-          zoom={15}
+          zoom={ZOOM}
         >
           <TileLayer
             attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
             url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
           />
+          <CenterAreas areas={areas} zoom={ZOOM} />
+
           {fires.map((fire) => (
             <FireCircle key={fire.id} fire={fire} />
           ))}
