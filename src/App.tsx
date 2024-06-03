@@ -6,6 +6,7 @@ import { useSupabaseRealTime } from "./hooks/supabaseRealTime";
 import { useSupabaseService } from "./hooks/supabaseService";
 import { FireCircle } from "./FireCircle";
 import { CenterAreas } from "./CenterAreas";
+import { AlarmButton } from "./AlarmButton";
 
 import "leaflet/dist/leaflet.css";
 import "leaflet-rotatedmarker";
@@ -74,12 +75,7 @@ export function App() {
 
   return (
     <>
-      <button
-        onClick={enableSound}
-        style={{ backgroundColor: isSoundEnabled ? "green" : "red" }}
-      >
-        Enable Alarm Sound
-      </button>
+      <AlarmButton enableSound={enableSound} isSoundEnabled={isSoundEnabled} />
       {areas.length > 0 && (
         <MapContainer
           style={{ height: "100%", width: "100%" }}
