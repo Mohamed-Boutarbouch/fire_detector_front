@@ -24,7 +24,7 @@ export function App() {
 
   const { getAreas, getCameras, getDirections, areas, cameras, directions } =
     useSupabaseService();
-  const { fires, enableSound, isSoundEnabled } =
+  const { fires, enableSound, isSoundEnabled, isFireDetected } =
     useSupabaseRealTime(directions);
 
   const ZOOM = 15;
@@ -74,7 +74,10 @@ export function App() {
   }, [cameraServer]);
 
   return (
-    <>
+    <section
+      style={{ height: "100%", width: "100%" }}
+      className={isFireDetected ? "flash-red" : ""}
+    >
       <AlarmButton enableSound={enableSound} isSoundEnabled={isSoundEnabled} />
       {areas.length > 0 && (
         <MapContainer
@@ -162,6 +165,6 @@ export function App() {
           <img src={frame} alt="Video Frame" />
         </div>
       )}
-    </>
+    </section>
   );
 }

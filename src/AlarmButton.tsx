@@ -6,8 +6,6 @@ interface AlarmButtonProps {
 }
 
 export function AlarmButton({ isSoundEnabled, enableSound }: AlarmButtonProps) {
-  console.log(isSoundEnabled);
-
   return (
     <div>
       <button
