@@ -3,7 +3,7 @@ import { supabase } from "../supabaseClient";
 import { Direction, Fire } from "../types";
 
 export function useSupabaseRealTime(directions: Direction[]) {
-  const TEN_SECONDS = 10000;
+  const TEN_SECONDS = 20000;
 
   const [fires, setFires] = useState<Fire[]>([]);
   const [isSoundEnabled, setIsSoundEnabled] = useState(false);
@@ -89,7 +89,7 @@ export function useSupabaseRealTime(directions: Direction[]) {
   useEffect(() => {
     const interval = setInterval(() => {
       setIsFireDetected(false);
-    }, 40000);
+    }, 20000);
 
     return () => clearInterval(interval);
   }, [fires]);
