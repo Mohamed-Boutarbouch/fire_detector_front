@@ -1,3 +1,29 @@
+html,
+body,
+#root {
+  height: 100%;
+  width: 100%;
+  margin: 0;
+  display: flex;
+  flex-direction: row-reverse;
+  justify-content: center;
+  align-items: center;
+}
+
+.map-container {
+  height: 90%;
+  width: 90%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  position: relative;
+}
+
+.map {
+  height: 90%;
+  width: 90%;
+}
+
 .legend {
   bottom: 0px;
   font: 12px/20px "Helvetica Neue", Arial, Helvetica, sans-serif;

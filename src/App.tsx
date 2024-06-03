@@ -74,15 +74,18 @@ export function App() {
   }, [cameraServer]);
 
   return (
-    <section
-      style={{ height: "100%", width: "100%" }}
-      className={isFireDetected ? "flash-red" : ""}
-    >
-      {isFireDetected ? <span style={{ fontSize: "50px" , marginLeft : "40%" , color:"white"}}>FIRE DETECTED</span> : ""} 
+    <section className={`map-container ${isFireDetected ? "flash-red" : ""}`}>
+      {isFireDetected ? (
+        <span style={{ fontSize: "50px", marginLeft: "40%", color: "white" }}>
+          FIRE DETECTED
+        </span>
+      ) : (
+        ""
+      )}
       <AlarmButton enableSound={enableSound} isSoundEnabled={isSoundEnabled} />
       {areas.length > 0 && (
         <MapContainer
-          style={{ height: "100%", width: "100%" }}
+          className="map"
           center={[
             parseFloat(areas[0]?.center_latitude),
             parseFloat(areas[0]?.center_longitude),
