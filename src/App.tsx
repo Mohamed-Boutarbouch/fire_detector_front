@@ -35,7 +35,7 @@ export function App() {
   // socket.io code from here
   useEffect(() => {
     if (cameraServer) {
-      // Close previous socket connection
+      // Close previous sockets connection
       if (socket) {
         socket.close();
       }
@@ -48,31 +48,13 @@ export function App() {
         newSocket.emit("start_stream");
       });
 
-      let totalSizeStream = 0;
 
       // This is a listener to the frames coming from python
       newSocket.on("video_frame", ({ data }) => {
-        // Calculate the size of the received data in bytes
-        const stringLength = data.length;
-
-        // Each base64 character represents 6 bits, so we need to convert it to bytes
-        const bytes = Math.ceil((stringLength * 3) / 4);
-
-        // Convert bytes to kilobytes
-        const kilobytes = bytes / 1024;
-
-        totalSizeStream = totalSizeStream + kilobytes;
-        console.log(`Size of received data: ${kilobytes.toFixed(2)} KB`);
-        console.log(
-          `Total Size of received data: ${(
-            parseFloat(totalSizeStream.toFixed(2)) / 1024
-          ).toFixed(2)} MB`
-        );
-
         if (loading) {
           setLoading(false);
         }
-        // Decode base64 and set as image source
+        // Decode base64
         setFrame(`data:image/jpeg;base64,${data}`);
       });
 
@@ -85,15 +67,8 @@ export function App() {
       // If cameraServer is null, reset frame
       setFrame("");
     }
-  }, [cameraServer, loading, socket]);
+  }, [cameraServer]);
 
-  // const toggle_stream = () => {
-  //   socket?.emit("toggle_stream");
-  // };
-
-  // const start_detection_functionality = () => {
-  //   socket?.emit("start_detection_functionality");
-  // };
 
   return (
     <>
@@ -132,7 +107,7 @@ export function App() {
                 eventHandlers={{
                   click: () => {
                     setFrame(null);
-                    setCameraServer("http://127.0.0.1:5002");
+                    setCameraServer(camera.cameraServer);
                   },
                 }}
               >
@@ -154,8 +129,6 @@ export function App() {
                       Live
                     </div>
                   )}
-                  {/* <button onClick={start_detection_functionality} style={{display: "absolute", right: "2px", top:"2px", backgroundColor: "red"}}>start</button>
-                <button onClick={()=>{toggle_stream(); setFrame(null)}} style={{display: "absolute", right: "2px", top:"2px", backgroundColor: "blue"}}>stream</button> */}
                 </Popup>
               </Marker>
               <Polygon

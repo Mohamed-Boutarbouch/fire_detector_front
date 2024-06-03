@@ -13,6 +13,7 @@ export interface Camera {
   p3longitude: string;
   p4latitude: string;
   p4longitude: string;
+  cameraServer: string;
 }
 
 export interface Area {
