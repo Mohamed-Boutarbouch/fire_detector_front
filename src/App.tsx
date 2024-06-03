@@ -11,7 +11,7 @@ import { AlarmButton } from "./AlarmButton";
 import "leaflet/dist/leaflet.css";
 import "leaflet-rotatedmarker";
 
-import { cameraIcon } from "./icons";
+import { cameraIcon } from "./leafletIcon";
 import live from "/live.png";
 import redButton from "/circle.png";
 
