@@ -78,6 +78,7 @@ export function App() {
       style={{ height: "100%", width: "100%" }}
       className={isFireDetected ? "flash-red" : ""}
     >
+      {isFireDetected ? <span style={{ fontSize: "50px" , marginLeft : "40%" , color:"white"}}>FIRE DETECTED</span> : ""} 
       <AlarmButton enableSound={enableSound} isSoundEnabled={isSoundEnabled} />
       {areas.length > 0 && (
         <MapContainer
