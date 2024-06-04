@@ -24,7 +24,7 @@ export function App() {
 
   const { getAreas, getCameras, getDirections, areas, cameras, directions } =
     useSupabaseService();
-  const { fires, enableSound, isSoundEnabled, isFireDetected } =
+  const { fires, enableSound, isSoundEnabled, isFireDetected, detectionType } =
     useSupabaseRealTime(directions);
 
   const ZOOM = 15;
@@ -75,7 +75,7 @@ export function App() {
 
   return (
     <section className={`map-container ${isFireDetected ? "flash-red" : ""}`}>
-      {isFireDetected ? (
+      {isFireDetected && (
         <span
           style={{
             fontFamily: "monospace",
@@ -84,10 +84,8 @@ export function App() {
             color: "white",
           }}
         >
-          FIRE DETECTED
+          {detectionType.toUpperCase()} DETECTED
         </span>
-      ) : (
-        ""
       )}
       <AlarmButton enableSound={enableSound} isSoundEnabled={isSoundEnabled} />
       {areas.length > 0 && (
